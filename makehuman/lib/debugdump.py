@@ -4,17 +4,17 @@
 """ 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Joel Palmius
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -40,7 +40,7 @@ import sys
 import os
 import re
 import platform
-import string
+import locale
 if sys.platform.startswith('win'):
     import winreg
 import log
@@ -113,6 +113,7 @@ class DebugDump(object):
         self.write("DEFAULT ENCODING: %s", sys.getdefaultencoding())
         self.write("FILESYSTEM ENCODING: %s", sys.getfilesystemencoding())
         self.write("STDOUT ENCODING: %s", sys.stdout.encoding)
+        self.write("LOCALE PREFERRED ENCODING: %s", locale.getpreferredencoding(False))
         self.write("WORKING DIRECTORY: %s", getpath.pathToUnicode(os.getcwd()))
         self.write("HOME LOCATION: %s", getpath.pathToUnicode(getpath.getHomePath()))
         syspath = os.path.pathsep.join( [getpath.pathToUnicode(p) for p in sys.path] )

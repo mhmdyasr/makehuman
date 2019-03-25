@@ -6,11 +6,11 @@
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
@@ -96,7 +96,8 @@ class ExpressionTaskView(gui3d.TaskView, filecache.MetadataCacher):
                                                     name='Expression',
                                                     notFoundImage = getpath.getSysDataPath('notfound.thumb'),
                                                     noneItem = True,
-                                                    doNotRecurse = True))
+                                                    doNotRecurse = True,
+                                                    stickyTags = gui3d.app.getSetting('makehumanTags')))
         self.filechooser.setIconSize(50,50)
         self.filechooser.enableAutoRefresh(False)
 
@@ -116,7 +117,7 @@ class ExpressionTaskView(gui3d.TaskView, filecache.MetadataCacher):
         self.base_bvh = bvh.load(getpath.getSysDataPath('poseunits/face-poseunits.bvh'), allowTranslation="none")
         self.base_anim = self.base_bvh.createAnimationTrack(self.human.getBaseSkeleton(), name="Expression-Face-PoseUnits")
 
-        poseunit_json = json.load(io.open(getpath.getSysDataPath('poseunits/face-poseunits.json'),'r'), object_pairs_hook=OrderedDict)
+        poseunit_json = json.load(io.open(getpath.getSysDataPath('poseunits/face-poseunits.json'),'r', encoding='utf-8'), object_pairs_hook=OrderedDict)
         self.poseunit_names = poseunit_json['framemapping']
 
         if len(self.poseunit_names) != self.base_bvh.frameCount:
@@ -207,7 +208,7 @@ class ExpressionTaskView(gui3d.TaskView, filecache.MetadataCacher):
 
     def getMetadataImpl(self, filename):
         import json
-        posedata = json.load(io.open(filename, 'r'))
+        posedata = json.load(io.open(filename, 'r', encoding='utf-8'))
         name = posedata['name']
         description = posedata.get('description', '')
         tags = set([t.lower() for t in posedata.get('tags', [])])

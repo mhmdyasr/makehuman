@@ -6,11 +6,11 @@
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Joel Palmius, Marc Flerackers, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
@@ -37,10 +37,17 @@ TODO
 """
 
 import os
+import sys
+import io
 import mh
 import gui3d
 import gui
 import log
+
+from qtui import getExistingDirectory
+from getpath import getHomePath, formatPath
+from language import language
+from filechooser import FileChooserBase as fc
 
 class SettingCheckbox(gui.CheckBox):
     def __init__(self, label, settingName, postAction=None):
@@ -147,6 +154,15 @@ class SettingsTaskView(gui3d.TaskView):
         self.nor_mode = self.tagFilterBox.addWidget(gui.RadioButton(tagFilter, 'NOT OR', gui3d.app.getSetting('tagFilterMode') == 'NOR'), 1, 0)
         self.nand_mode = self.tagFilterBox.addWidget(gui.RadioButton(tagFilter, 'NOT AND', gui3d.app.getSetting('tagFilterMode') == 'NAND'), 1, 1)
 
+        tagsBox = self.addLeftWidget(gui.GroupBox('Tags Count'))
+        self.countEdit = tagsBox.addWidget(gui.TextEdit(str(gui3d.app.getSetting('tagCount'))), 0, 0, columnSpan=0)
+        tagsBox.addWidget(gui.TextView(' Tags '), 0, 1)
+        self.countEdit.textChanged.connect(self.onTextChanged)
+
+        nameBox = self.addLeftWidget(gui.GroupBox('Name Tags:'))
+        self.useNameTags = nameBox.addWidget(SettingCheckbox('Use Name Tags', 'useNameTags'))
+
+        self.createFilterModeSwitch()
 
         startupBox = self.addLeftWidget(gui.GroupBox('Startup'))
         self.preload = startupBox.addWidget(SettingCheckbox("Preload macro targets", 'preloadTargets'))
@@ -161,9 +177,35 @@ class SettingsTaskView(gui3d.TaskView):
             gui3d.app.resetSettings()
             self.updateGui()
 
+        homeBox = gui.GroupBox('Configure Home Folder')
+        self.addLeftWidget(homeBox)
+        self.homeButton = homeBox.addWidget(gui.Button(''))
+        if hasConfigFile():
+            self.homeButton.setLabel('Delete Config File')
+        else:
+            self.homeButton.setLabel('Create Config File')
+
+        @self.homeButton.mhEvent
+        def onClicked(event):
+            if hasConfigFile():
+                os.remove(getConfigPath('makehuman.conf'))
+                self.homeButton.setLabel('Create Config File')
+                gui3d.app.statusPersist('Home Folder Location: Default')
+            else:
+                filePath = getConfigPath('makehuman.conf')
+                homePath = formatPath(getExistingDirectory(getHomePath()))
+                if homePath != '.':
+                    if sys.platform.startswith('darwin') or sys.platform.startswith('linux') and not os.path.isdir(getConfigPath('')):
+                        os.makedirs(getConfigPath(''))
+                    if os.path.isdir(homePath) and os.path.isdir(getConfigPath('')):
+                        with io.open(filePath, 'w', encoding='utf-8') as f:
+                            f.writelines(homePath + '\n')
+                    self.homeButton.setLabel('Delete Config File')
+                    gui3d.app.statusPersist('Home Folder Location: ' + homePath)
+
         self.checkboxes.extend([self.realtimeUpdates, self.realtimeNormalUpdates,
             self.realtimeFitting, self.cameraAutoZoom, self.sliderImages,
-            self.preload, self.saveScreenSize])
+            self.useNameTags, self.preload, self.saveScreenSize])
 
         themes = []
         self.themesBox = self.addRightWidget(gui.GroupBox('Theme'))
@@ -251,6 +293,9 @@ class SettingsTaskView(gui3d.TaskView):
             if radioBtn.theme == theme:
                 radioBtn.updateButton(True)
 
+        self.updateTagFilterModes()
+
+    def updateTagFilterModes(self):
         convmodes = {'NOR': 'NOT OR',
                      'NAND': 'NOT AND'}
         mode = convmodes.get(gui3d.app.getSetting('tagFilterMode'), gui3d.app.getSetting('tagFilterMode'))
@@ -258,13 +303,36 @@ class SettingsTaskView(gui3d.TaskView):
         for radioBtn in self.tagFilterBox.children:
             radioBtn.setChecked(radioBtn.getLabel() == mode)
 
+        self.countEdit.setText(str(gui3d.app.getSetting('tagCount')))
+
+    def createFilterModeSwitch(self):
+        action = gui.Action('switchFilterMode', language.getLanguageString('Switch Filter Mode'), self.switchFilterMode)
+        gui3d.app.mainwin.addAction(action)
+        mh.setShortcut(mh.Modifiers.ALT, mh.Keys.f, action)
+
+    def switchFilterMode(self):
+        modes = ['OR', 'AND', 'NOR', 'NAND']
+        index = (modes.index(gui3d.app.getSetting('tagFilterMode')) + 1) % 4
+        gui3d.app.setSetting('tagFilterMode', modes[index])
+        self.updateTagFilterModes()
+        for switchFunc in fc.switchFuncList:
+            switchFunc()
 
     def onShow(self, event):
         gui3d.TaskView.onShow(self, event)
+        gui3d.app.statusPersist('Home Folder Location: ' + getHomePath())
 
     def onHide(self, event):
         gui3d.TaskView.onHide(self, event)
         gui3d.app.saveSettings()
+        gui3d.app.statusPersist('')
+
+    def onTextChanged(self):
+        text = self.countEdit.text
+        if text.isdigit():
+            gui3d.app.setSetting('tagCount', int(text))
+        else:
+            self.countEdit.setText(str(gui3d.app.getSetting('tagCount')))
 
 def load(app):
     category = app.getCategory('Settings')
@@ -274,3 +342,15 @@ def unload(app):
     pass
 
 
+def getConfigPath(filename = ''):
+    if sys.platform.startswith('linux'):
+        return os.path.expanduser(os.path.join('~/.config', filename))
+    elif sys.platform.startswith('darwin'):
+        return os.path.expanduser(os.path.join('~/Library/Application Support/MakeHuman', filename))
+    elif sys.platform.startswith('win32'):
+        return os.path.join(os.getenv('LOCALAPPDATA',''), filename)
+    else:
+        return ''
+
+def hasConfigFile():
+    return os.path.isfile(getConfigPath('makehuman.conf'))

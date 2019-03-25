@@ -4,17 +4,17 @@
 """
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Marc Flerackers, Glynn Clements, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -674,7 +674,7 @@ def loadModifiers(filename, human):
     from collections import OrderedDict
     modifiers = []
     lookup = OrderedDict()
-    data = json.load(io.open(filename, 'r'), object_pairs_hook=OrderedDict)
+    data = json.load(io.open(filename, 'r', encoding='utf-8'), object_pairs_hook=OrderedDict)
     for modifierGroup in data:
         groupName = modifierGroup['group']
         for mDef in modifierGroup['modifiers']:
@@ -708,7 +708,7 @@ def loadModifiers(filename, human):
     descFile = _tmp[0]+'_desc'+_tmp[1]
     hasDesc = OrderedDict([(key,False) for key in lookup.keys()])
     if os.path.isfile(descFile):
-        data = json.load(io.open(descFile, 'r'), object_pairs_hook=OrderedDict)
+        data = json.load(io.open(descFile, 'r', encoding='utf-8'), object_pairs_hook=OrderedDict)
         dCount = 0
         for mName, mDesc in data.items():
             try:

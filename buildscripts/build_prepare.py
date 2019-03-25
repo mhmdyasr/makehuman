@@ -8,15 +8,15 @@ MakeHuman build prepare
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Jonas Hauquier, Joel Palmius
 
-**Copyright(c):**      MakeHuman Team 2001-2018
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -87,10 +87,16 @@ import sys
 import os
 import subprocess
 import shutil
+import inspect
+
+pth = os.path.dirname(inspect.stack()[0][1])
 
 syspath = ["../makehuman","../makehuman/lib","../makehuman/apps","../makehuman/shared","../makehuman/core"]
-syspath.extend(sys.path)
-sys.path = syspath
+syspath2 = []
+for p in syspath:
+    syspath2.append( os.path.abspath( os.path.join(pth, p) ) )
+syspath2.extend(sys.path)
+sys.path = syspath2
 
 import getpath
 import gitutils
@@ -234,10 +240,6 @@ class MHAppExporter(object):
             _recursive_cp(self.sourceFile(f), self.targetFile(f))
         print("\n")
 
-        # Write VERSION file to export folder
-        print("Writing data/VERSION file to export folder\n")
-        self.writeVersionFile()
-
         # If RELEASE status or version-sub was set in config, update it in exported mh source file
         if (self.IS_RELEASE is not None) or (self.VERSION_SUB is not None) :
             f = open(self.targetFile('makehuman/makehuman.py'), 'r')
@@ -257,10 +259,14 @@ class MHAppExporter(object):
                     versionsub_replaced = True
                 lines.append(line)
             f.close()
-            f = open(self.targetFile('makehuman/makehuman.py'), 'wb')
+            f = open(self.targetFile('makehuman/makehuman.py'), 'w')
             f.write(''.join(lines))
             f.close()
             print('\n')
+
+        # Write VERSION file to export folder
+        print("Writing data/VERSION file to export folder\n")
+        self.writeVersionFile()
 
         # Re-arrange folders
         for f in os.listdir( self.targetFile() ):
@@ -425,6 +431,8 @@ class MHAppExporter(object):
         if not self.overrideGitCommit is None:
             mhv.currentShortCommit = self.overrideGitcommit
             mhv.currentLongCommit = self.overrideGitcommit
+
+        mhv.isRelease = (self.IS_RELEASE is not None) and self.IS_RELEASE
 
         mhv.writeVersionFile(versionFile)
 

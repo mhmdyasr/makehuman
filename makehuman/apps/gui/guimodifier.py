@@ -6,17 +6,17 @@ Modifier taskview
 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Glynn Clements, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -221,7 +221,7 @@ def loadModifierTaskViews(filename, human, category, taskviewClass=None):
     if not taskviewClass:
         taskviewClass = ModifierTaskView
 
-    data = json.load(io.open(filename, 'r'), object_pairs_hook=OrderedDict)
+    data = json.load(io.open(filename, 'r', encoding='utf-8'), object_pairs_hook=OrderedDict)
     taskViews = []
     # Create task views
     for taskName, taskViewProps in data.items():

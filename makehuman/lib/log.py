@@ -6,17 +6,17 @@ Logging.
 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Glynn Clements
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -87,24 +87,8 @@ def _toUnicode(msg, *args):
         else:
             raise
 
-    if isinstance(msg_, str):
-        return msg_
-    elif isinstance(msg_, str):
-        try:
-            return msg_.decode(sys.getdefaultencoding())
-        except UnicodeError:
-            pass
-        try:
-            return msg_.decode(sys.getfilesystemencoding())
-        except UnicodeError:
-            pass
-        try:
-            import locale
-            return msg_.decode(locale.getpreferredencoding())
-        except UnicodeError:
-            pass
-
-        return msg_.decode('UTF-8', 'replace')
+    if isinstance(msg_, bytes):
+        return str(msg_, encoding='utf-8')
     else:
         return msg_
 
@@ -174,6 +158,7 @@ class NoiseFilter(logging.Filter):
 
 class DowngradeFilter(logging.Filter):
     def __init__(self, level):
+        super(DowngradeFilter, self).__init__()
         self.level = level
 
     def filter(self, record):
@@ -208,8 +193,9 @@ class SplashLogHandler(logging.Handler):
 
 class StatusLogHandler(logging.Handler):
     def emit(self, record):
-        if G.app is not None and G.app.statusBar is not None:
-            G.app.statusBar.showMessage("%s", self.format(record))
+        if G.app is not None and G.app.statusBar is not None and record.levelno >= ERROR:
+            msg = 'An ERROR Occurred. Check Utilities/Logs For More Information! Error Message:  {:s}'.format(record.getMessage())
+            G.app.statusBar.temporaryMessage("%s", msg, msec=10000)
 
 class ApplicationLogHandler(logging.Handler):
     def emit(self, record):

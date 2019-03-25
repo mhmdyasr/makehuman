@@ -6,17 +6,17 @@ MakeHuman python entry-point.
 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Joel Palmius
 
-**Copyright(c):**      MakeHuman Team 2016
+**Copyright(c):**      MakeHuman Team 2016 - 2019
 
 **Licensing:**         AGPL3 
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -60,7 +60,7 @@ class DownloadAssetsGit:
     _git_official_assets_repo = "https://github.com/makehumancommunity/makehuman-assets.git"
     _git_official_assets_branch = "master"
 
-    _makehuman_data_directory = os.path.abspath(getpath.getSysDataPath())
+    _makehuman_data_directory = os.path.abspath(os.path.realpath(getpath.getSysDataPath()))
 
     _user_dir = None
     _user_data_dir = None
@@ -84,7 +84,7 @@ class DownloadAssetsGit:
         if not os.path.isdir(self._user_data_dir):
             os.makedirs(self._user_data_dir)
             
-        self._git_official_clone_location = os.path.abspath(os.path.join(self._user_dir,'official_assets'))
+        self._git_official_clone_location = os.path.abspath(os.path.realpath(os.path.join(self._user_dir,'official_assets')))
 
         self.readOverridesFromEnvironment()
 
@@ -121,7 +121,9 @@ class DownloadAssetsGit:
             for name in files:
                 fullname = name
                 if root != "base":
-                    fullname = os.path.relpath(os.path.join(root,name),os.path.join(self._git_official_clone_location,"base"))
+                    a = os.path.abspath(os.path.join(root,name))
+                    b = os.path.abspath(os.path.join(self._git_official_clone_location,"base"))
+                    fullname = os.path.relpath(a,b)
 
                 source = os.path.abspath(os.path.join(self._git_official_clone_location,"base",fullname))
                 dest = os.path.abspath(os.path.join(self._makehuman_data_directory,fullname))

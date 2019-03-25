@@ -4,17 +4,17 @@
 """
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Glynn Clements, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -84,7 +84,7 @@ def inFile(path):
         if not os.path.isfile(path):
             yield []
             return
-        with io.open(path, 'rU', encoding="utf-8") as f:
+        with io.open(path, 'r', encoding="utf-8") as f:
             yield f
     except:
         log.error('Failed to load file %s', path, exc_info=True)
@@ -236,9 +236,19 @@ class MHApplication(gui3d.Application, mh.Application):
                 'guiTheme': 'makehuman',
                 'restoreWindowSize': True,
                 'windowGeometry': '',
-                'tagFilterMode': 'OR'
+                'tagFilterMode': 'OR',
+                'useNameTags': False,
+                'tagCount': 5,
+                'makehumanTags': ['makehuman™'],
+                'keepCustomValues': False
             }
         else:
+
+            # For development:
+            # Update _versionSentinel, when changing any default value, to invalidate settings.ini!
+            # Recommended value is the md5 hexdigest of time.strftime("%a, %b %d %Y %H:%M:%S +0000", time.gmtime()).
+            # To generate a new value you can run buildscripts/versionsentinel.py.
+
             self._default_settings = {
                 'realtimeUpdates': True,
                 'realtimeFitting': True,
@@ -258,7 +268,12 @@ class MHApplication(gui3d.Application, mh.Application):
                 'preloadTargets': False,
                 'restoreWindowSize': True,
                 'windowGeometry': '',
-                'tagFilterMode': 'OR'
+                'tagFilterMode': 'OR',
+                'useNameTags': False,
+                'tagCount': 5,
+                'makehumanTags': ['makehuman™'],
+                'keepCustomValues': False,
+                '_versionSentinel': 'ADF83BF89112337B261431C15C660D9A' # GM Time was: Sat, Feb 09 2019 23:13:56 +0000
             }
 
         self._settings = dict(self._default_settings)
@@ -839,6 +854,7 @@ class MHApplication(gui3d.Application, mh.Application):
         self.saveSettings(True)
         self.unloadPlugins()
         self.dumpMissingStrings()
+        self.files.load.unload()
 
     def onQuit(self, event):
         self.promptAndExit()
@@ -926,22 +942,29 @@ class MHApplication(gui3d.Application, mh.Application):
 
     def loadSettings(self):
         with inFile("settings.ini") as f:
+            settings = {}
             if f:
                 settings = mh.parseINI(f.read())
-
-                if 'version' in settings and settings['version'] == mh.getVersionDigitsStr():
-                    # Only load settings for this specific version
-                    del settings['version']
-                    for setting_name, value in settings.items():
-                        try:
-                            self.setSetting(setting_name, value)
-                        except:
-                            # Store the values of (yet) undeclared settings and defer until plugins are loaded
-                            self._undeclared_settings[setting_name] = value
-                else:
-                    log.warning("Incompatible MakeHuman settings (version %s) detected (expected %s). Loading default settings." % (settings.get('version','undefined'), mh.getVersionDigitsStr()))
             else:
                 log.warning("No settings file found, starting with default settings.")
+
+        if not mh.isRelease() and settings:
+            if self._default_settings.get('_versionSentinel') != settings.get('_versionSentinel'):
+                log.warning('Default settings were changed, invalidating settings.ini')
+                return
+
+        if settings.get('version') == mh.getVersionDigitsStr():
+            # Only load settings for this specific version
+            del settings['version']
+            for setting_name, value in settings.items():
+                try:
+                    self.setSetting(setting_name, value)
+                except:
+                    # Store the values of (yet) undeclared settings and defer until plugins are loaded
+                    self._undeclared_settings[setting_name] = value
+        else:
+            log.warning("Incompatible MakeHuman settings (version %s) detected (expected %s). Loading default settings." % (settings.get('version','undefined'), mh.getVersionDigitsStr()))
+
 
         if 'language' in self.settings:
             self.setLanguage(self.settings['language'])
@@ -1025,7 +1048,7 @@ class MHApplication(gui3d.Application, mh.Application):
         self.bgTopLeftColor = [0.312, 0.312, 0.312]
         self.bgTopRightColor = [0.312, 0.312, 0.312]
 
-        f = io.open(os.path.join(mh.getSysDataPath("themes/"), theme + ".mht"), 'rU')
+        f = io.open(os.path.join(mh.getSysDataPath("themes/"), theme + ".mht"), 'r', encoding='utf-8')
 
         update_log = False
         for data in f.readlines():
@@ -1074,7 +1097,7 @@ class MHApplication(gui3d.Application, mh.Application):
         log.debug("Loaded theme %s", mh.getSysDataPath('themes/'+theme+'.mht'))
 
         try:
-            f = io.open(mh.getSysDataPath('themes/%s.qss' % theme), 'r')
+            f = io.open(mh.getSysDataPath('themes/%s.qss' % theme), 'r', encoding='utf-8')
             qStyle = "\n".join(f.readlines())
             self.setStyleSheet(qStyle)
             # Also set stylesheet on custom slider style
@@ -1694,9 +1717,9 @@ class MHApplication(gui3d.Application, mh.Application):
         # 4 - Symmetry toolbar
         toolbar = self.sym_toolbar = mh.addToolBar("Symmetry")
 
-        self.actions.symmetryR = action('symm1', self.getLanguageString('Symmmetry R>L'),     self.symmetryLeft)
-        self.actions.symmetryL = action('symm2', self.getLanguageString('Symmmetry L>R'),     self.symmetryRight)
-        self.actions.symmetry  = action('symm',  self.getLanguageString('Symmmetry'),         self.symmetry, toggle=True)
+        self.actions.symmetryR = action('symm1', self.getLanguageString('Symmetry R>L'),     self.symmetryLeft)
+        self.actions.symmetryL = action('symm2', self.getLanguageString('Symmetry L>R'),     self.symmetryRight)
+        self.actions.symmetry  = action('symm',  self.getLanguageString('Symmetry'),         self.symmetry, toggle=True)
 
 
         # 5 - Camera toolbar

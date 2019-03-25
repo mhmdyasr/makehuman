@@ -6,11 +6,11 @@
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Thomas Larsson, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
@@ -73,7 +73,7 @@ def writeSceneWithArmature(fp, meshes, skel, config, name):
         '\n  <library_visual_scenes>\n' +
         '    <visual_scene id="Scene" name="%s_Scene">\n' % name)
 
-    fp.write('      <node id="%s" name="%s">\n' % (skel.name,name))
+    fp.write('      <node id="%s" name="%s">\n' % (skel.name.replace(' ', '_'),name))
     writeMatrix(fp, _Identity, "transform", 8)
     for rootBone in skel.roots:
         writeBone(fp, rootBone, config, 'layer="L1"', 1)

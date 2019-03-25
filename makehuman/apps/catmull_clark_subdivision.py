@@ -6,17 +6,17 @@ Mesh Subdivision Plugin.
 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Marc Flerackers, Glynn Clements
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -60,6 +60,7 @@ class SubdivisionObject(Object3D):
 
         self.MAX_FACES = object.MAX_FACES
         self.cameraMode = object.cameraMode
+        self.vertsPerFaceForExport = object.vertsPerFaceForExport
         self.visibility = object.visibility
         self.pickable = object.pickable
         self.transparentPrimitives = object.transparentPrimitives * 4
@@ -508,6 +509,14 @@ def _reverse_n_to_m_map(input, output, offset=0):
 
 
 def createSubdivisionObject(object, staticFaceMask=None):
+    #
+    # since the algorithm was written for quads we avoid triangle-meshes to be subdivided
+    # and return the object given
+    #
+    if object.vertsPerFaceForExport != 4:
+        log.debug('No Catmull-Clark subdivision on triangle-mesh %s.', object.name)
+        return object
+
     obj = SubdivisionObject(object, staticFaceMask)
     obj.create()
     return obj

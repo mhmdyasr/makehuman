@@ -6,17 +6,17 @@ Metadata Search Functionality for Tagged Settings Libraries.
 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Marc Flerackers
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -133,7 +133,7 @@ def loadRecord(archivePath, recordID):
 
     import io.open
     time1 = time.time()
-    f = io.open(archivePath, 'rU', encoding="utf-8")
+    f = io.open(archivePath, 'r', encoding="utf-8")
     record = None
     for line in f:
         if line.find(recordID) != -1:
@@ -161,7 +161,7 @@ def searchRecord(archivePath, field):
     """
     import io
     time1 = time.time()
-    f = io.open(archivePath, 'rU', encoding="utf-8")
+    f = io.open(archivePath, 'r', encoding="utf-8")
     recordIDs = []
     for line in f:
         if line.find(field) != -1:

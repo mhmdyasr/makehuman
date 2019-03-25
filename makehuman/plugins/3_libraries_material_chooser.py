@@ -6,11 +6,11 @@
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Jonas Hauquier, Marc Flerackers
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
@@ -76,7 +76,8 @@ class MaterialTaskView(gui3d.TaskView, filecache.MetadataCacher):
 
         self.materials = None
 
-        self.filechooser = self.addRightWidget(fc.IconListFileChooser(self.materials, 'mhmat', ['thumb', 'png'], mh.getSysDataPath('skins/notfound.thumb'), name='Material'))
+        self.filechooser = self.addRightWidget(fc.IconListFileChooser(self.materials, 'mhmat', ['thumb', 'png'],
+          mh.getSysDataPath('skins/notfound.thumb'), name='Material', stickyTags=gui3d.app.getSetting('makehumanTags')))
         self.filechooser.setIconSize(50,50)
         self.filechooser.enableAutoRefresh(False)
         #self.filechooser.setFileLoadHandler(fc.MhmatFileLoader())
@@ -162,7 +163,13 @@ class MaterialTaskView(gui3d.TaskView, filecache.MetadataCacher):
 
         # Path where proxy file is located
         if proxy:
-            paths = [os.path.dirname(proxy.file)] + paths
+            dirname = os.path.abspath(os.path.dirname(proxy.file))
+            parent = os.path.abspath(os.path.join(dirname, '..'))
+            asset_basename = os.path.basename(dirname)
+            asset_parentbase = os.path.basename(parent)
+            user_parent_base = getpath.getDataPath(asset_parentbase)
+            user_asset_final = os.path.abspath(os.path.join(user_parent_base,asset_basename))
+            paths = [dirname, user_asset_final] + paths
 
         return paths
 
@@ -265,15 +272,18 @@ class MaterialTaskView(gui3d.TaskView, filecache.MetadataCacher):
         Produce a portable path for writing to file.
         """
         # TODO move as helper func to material module
-        if objFile:
-            objFile = getpath.canonicalPath(objFile)
-            if os.path.isfile(objFile):
-                objFile = os.path.dirname(objFile)
-            searchPaths = [ objFile ]
-        else:
-            searchPaths = []
+        if filepath:
+            if objFile:
+                objFile = getpath.canonicalPath(objFile)
+                if os.path.isfile(objFile):
+                    objFile = os.path.dirname(objFile)
+                searchPaths = [ objFile ]
+            else:
+                searchPaths = []
 
-        return getpath.getJailedPath(filepath, searchPaths)
+            return getpath.getJailedPath(filepath, searchPaths)
+        else:
+            return ''
 
     def getMaterialPath(self, relPath, objFile = None):
         if objFile:

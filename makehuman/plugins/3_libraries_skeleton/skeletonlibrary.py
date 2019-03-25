@@ -6,11 +6,11 @@
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
@@ -109,14 +109,15 @@ class SkeletonLibrary(gui3d.TaskView, filecache.MetadataCacher):
             os.makedirs(self.userDataPath)
         self.paths = [self.userDataPath, self.sysDataPath]
 
-        self.filechooser = self.addRightWidget(fc.IconListFileChooser( \
+        self.filechooser = self.addRightWidget(fc.IconListFileChooser(
                                                     self.paths,
                                                     'mhskel',
                                                     'thumb',
                                                     name='Rig presets',
                                                     notFoundImage = mh.getSysDataPath('notfound.thumb'), 
                                                     noneItem = True, 
-                                                    doNotRecurse = True))
+                                                    doNotRecurse = False,
+                                                    stickyTags=gui3d.app.getSetting('makehumanTags')))
         self.filechooser.setIconSize(50,50)
         self.filechooser.enableAutoRefresh(False)
 

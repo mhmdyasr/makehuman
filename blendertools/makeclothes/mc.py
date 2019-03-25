@@ -4,9 +4,9 @@
 """
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Thomas Larsson
 
@@ -14,7 +14,7 @@
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -105,8 +105,7 @@ def goodName(name):
 
 def getFileName(pob, folder, ext):
     name = goodName(pob.name)
-    outdir = '%s/%s' % (folder, name)
-    outdir = os.path.realpath(os.path.expanduser(outdir))
+    outdir = os.path.join(folder,name)
     if not os.path.exists(outdir):
         print(("Creating directory %s" % outdir))
         try:

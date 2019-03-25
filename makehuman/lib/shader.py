@@ -4,17 +4,17 @@
 """
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Glynn Clements
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -326,7 +326,7 @@ class Shader(object):
 
     @staticmethod
     def createShader(file, type, defines = [], defineables = None):
-        with io.open(file, 'rU') as f:
+        with io.open(file, 'r', encoding='utf-8') as f:
             source = f.read()
         if "#version" not in source:
             log.warning("The shader source in %s does not contain an explicit GLSL version declaration. This could cause problems with some compilers.", file)
@@ -417,19 +417,19 @@ class Shader(object):
 
         if os.path.isfile(vertexSource):
             self.vertexId = self.createShader(vertexSource, GL_VERTEX_SHADER, self.defines, self.defineables)
-            if self.vertexId == None:
+            if self.vertexId is None:
                 raise RuntimeError("No vertex shader program compiled, cannot set vertex shader. (%s)" % vertexSource)
             glAttachShader(self.shaderId, self.vertexId)
 
         if os.path.isfile(geometrySource) and 'GL_GEOMETRY_SHADER' in globals():
             self.geometryId = self.createShader(geometrySource, GL_GEOMETRY_SHADER, self.defines, self.defineables)
-            if self.geometryId == None:
+            if self.geometryId is None:
                 raise RuntimeError("No geometry shader program compiled, cannot set geometry shader. (%s)" % geometrySource)
             glAttachShader(self.shaderId, self.geometryId)
 
         if os.path.isfile(fragmentSource):
             self.fragmentId = self.createShader(fragmentSource, GL_FRAGMENT_SHADER, self.defines, self.defineables)
-            if self.fragmentId == None:
+            if self.fragmentId is None:
                 raise RuntimeError("No fragment shader program compiled, cannot set fragment shader. (%s)" % fragmentSource)
             glAttachShader(self.shaderId, self.fragmentId)
 
@@ -482,9 +482,9 @@ class Shader(object):
                                 GL_TEXTURE0 + glmodule.MAX_TEXTURE_UNITS):
             glActiveTexture(gl_tex_idx)
             glBindTexture(GL_TEXTURE_2D, 0)
-            glDisable(GL_TEXTURE_2D)
+            #glDisable(GL_TEXTURE_2D)
             glBindTexture(GL_TEXTURE_1D, 0)
-            glDisable(GL_TEXTURE_1D)
+            #glDisable(GL_TEXTURE_1D)
 
     def requiresVertexTangent(self):
         return self.vertexTangentAttrId != -1

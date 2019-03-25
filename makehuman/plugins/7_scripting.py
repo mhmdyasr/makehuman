@@ -6,11 +6,11 @@
 
 **Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Joel Palmius
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
@@ -84,7 +84,7 @@ class ScriptingView(gui3d.TaskView):
                 return
 
             if(os.path.exists(filename)):
-                contents = io.open(filename, 'rU', encoding="utf-8").read()
+                contents = io.open(filename, 'r', encoding="utf-8").read()
                 self.scriptText.setText(contents)
                 dlg = gui.Dialog()
                 dlg.prompt("Load script","File was loaded in an acceptable manner","OK")
@@ -523,12 +523,12 @@ class ScriptingExecuteTab(gui3d.TaskView):
             dlg = gui.Dialog()
 
             desiredWidth = self.widthEdit.getText()
-            if(desiredWidth == None or not desiredWidth.isdigit()):
+            if(desiredWidth is None or not desiredWidth.isdigit()):
                 dlg.prompt("Input error","Width and height must be valid integers","OK")
                 return
 
             desiredHeight = self.heightEdit.getText()
-            if(desiredHeight == None or not desiredHeight.isdigit()):
+            if(desiredHeight is None or not desiredHeight.isdigit()):
                 dlg.prompt("Input error","Width and height must be valid integers","OK")
                 return
 

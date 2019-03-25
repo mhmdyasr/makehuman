@@ -4,17 +4,17 @@
 """
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -103,7 +103,7 @@ def downloadFile(ftp, filePath, destination, fileProgress):
 
 def parseContentsFile(filename):
     import io
-    f = io.open(filename, 'rU', encoding="utf-8")
+    f = io.open(filename, 'r', encoding="utf-8")
     fileData = f.read()
     contents = {}
     for l in fileData.split('\n'):

@@ -6,17 +6,17 @@ Modules to handle supported 3D file formats.
 
 **Project Name:**      MakeHuman
 
-**Product Home Page:** http://www.makehuman.org/
+**Product Home Page:** http://www.makehumancommunity.org/
 
-**Code Home Page:**    https://bitbucket.org/MakeHuman/makehuman/
+**Github Code Home Page:**    https://github.com/makehumancommunity/
 
 **Authors:**           Joel Palmius, Marc Flerackers
 
-**Copyright(c):**      MakeHuman Team 2001-2017
+**Copyright(c):**      MakeHuman Team 2001-2019
 
 **Licensing:**         AGPL3
 
-    This file is part of MakeHuman (www.makehuman.org).
+    This file is part of MakeHuman Community (www.makehumancommunity.org).
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -125,6 +125,7 @@ def loadBinaryMesh(obj, path):
     if 'MAX_FACES' in npzfile:
         # Set pole count if stored
         obj.MAX_FACES = int(npzfile['MAX_FACES'][0])
+        log.debug("NPZ-File: maxmimum number of faces for one vertex: %s", obj.MAX_FACES)
 
     #log.debug('loadBinaryMesh: loading arrays')
     coord = npzfile['coord']
