@@ -43,6 +43,7 @@ import sys
 import configparser
 import datetime
 import shutil
+import subprocess
 from distutils.dir_util import copy_tree
 
 pathname = os.path.dirname(sys.argv[0])
@@ -75,6 +76,9 @@ if len(sys.argv) > 1:
     exportDir = sys.argv[1]
 if exportDir is None:
     exportDir = defaultworkdir
+
+if not os.path.exists(exportDir):
+    os.mkdir(exportDir)
 
 shutil.rmtree(exportDir)
 
@@ -134,7 +138,7 @@ if os.path.exists(mhx2):
     todest = os.path.abspath(os.path.join(pluginsdir,'9_export_mhx2'))
     copy_tree(tocopy, todest)
 else:
-    print("MHX2 was not found in parent directory")
+    print("MHX2 was not found in parent directory: " + mhx2)
 
 asset = os.path.abspath(os.path.join(parentdir,'community-plugins-assetdownload'))
 if os.path.exists(asset):
@@ -142,7 +146,7 @@ if os.path.exists(asset):
     todest = os.path.abspath(os.path.join(pluginsdir,'8_asset_downloader'))
     copy_tree(tocopy, todest)
 else:
-    print("asset downloader was not found in parent directory")
+    print("asset downloader was not found in parent directory: " + asset)
 
 mhapi = os.path.abspath(os.path.join(parentdir,'community-plugins-mhapi'))
 if os.path.exists(mhapi):
@@ -150,7 +154,7 @@ if os.path.exists(mhapi):
     todest = os.path.abspath(os.path.join(pluginsdir,'1_mhapi'))
     copy_tree(tocopy, todest)
 else:
-    print("MHAPI was not found in parent directory")
+    print("MHAPI was not found in parent directory: " + mhapi)
 
 socket = os.path.abspath(os.path.join(parentdir,'community-plugins-socket'))
 if os.path.exists(socket):
@@ -158,7 +162,7 @@ if os.path.exists(socket):
     todest = os.path.abspath(os.path.join(pluginsdir,'8_server_socket'))
     copy_tree(tocopy, todest)
 else:
-    print("socket plugin was not found in parent directory")
+    print("socket plugin was not found in parent directory: " + socket)
 
 mp = os.path.abspath(os.path.join(parentdir,'community-plugins-massproduce'))
 if os.path.exists(mp):
@@ -166,10 +170,33 @@ if os.path.exists(mp):
     todest = os.path.abspath(os.path.join(pluginsdir,'9_massproduce'))
     copy_tree(tocopy, todest)
 else:
-    print("mass produce plugin was not found in parent directory")
+    print("mass produce plugin was not found in parent directory: " + mp)
 
+subprocess.call(["pynsist", "pynsist.cfg"], cwd=exportDir)
 
+buildDir = os.path.join(exportDir,"build","nsis")
 
-print("\n\nBuild has been prepared in " + exportDir + ".\n")
-print("Next step is to cd into that dir and run pynsist.\n")
+for file in os.listdir(buildDir):
+    if file.endswith(".exe"):
+        os.remove(os.path.join(buildDir, file))
+        
+with open(os.path.join(buildDir,"installer.nsi"), 'r') as file:
+    data = file.readlines()
+
+data[127] = 'CreateShortCut "$Desktop\makehuman-community.lnk" "$INSTDIR\Python\pythonw.exe" \
+            "$INSTDIR\mhstartwrapper.py" "$INSTDIR\makehuman.ico"\n\n'
+
+with open(os.path.join(buildDir, "installer.nsi"), 'w') as file:
+    file.writelines(data)
+
+makensis = "/usr/bin/makensis"
+
+if os.name == 'nt':
+    makensis = os.path.join(os.environ["programfiles(x86)"], "NSIS", "makensis.exe")
+
+try:
+    subprocess.call([makensis, os.path.join(buildDir, "installer.nsi")])
+except Exception as e:
+    print("NSIS script failed with exception: " + e)
+    print("Do you have NSIS installed to the default location?")
 

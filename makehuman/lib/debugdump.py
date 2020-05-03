@@ -45,6 +45,7 @@ if sys.platform.startswith('win'):
     import winreg
 import log
 import getpath
+from mhversion import MHVersion
 
 class DependencyError(Exception):
     def __init__(self, value):
@@ -99,14 +100,11 @@ class DebugDump(object):
     def reset(self):
         self.open()
 
+        mhv = MHVersion()
+
         self.write("VERSION: %s", os.environ['MH_VERSION'])
-        if 'HGREVISION' in os.environ and 'HGREVISION_SOURCE' in os.environ:
-            self.write("HG REVISION: r%s (%s) [%s]", os.environ['HGREVISION'], os.environ['HGNODEID'], os.environ['HGREVISION_SOURCE'])
-        else:
-            self.write("HG REVISION: UNKNOWN")
-        if 'HGBRANCH' in os.environ:
-            self.write("HG BRANCH: %s", os.environ['HGBRANCH'])
         self.write("SHORT VERSION: %s", os.environ['MH_SHORT_VERSION'])
+        self.write("LONG VERSION: %s", mhv.getFullVersionStr())
         self.write("BASEMESH VERSION: %s", os.environ['MH_MESH_VERSION'])
         self.write("IS BUILT (FROZEN): %s", os.environ['MH_FROZEN'])
         self.write("IS RELEASE VERSION: %s", os.environ['MH_RELEASE'])
@@ -128,7 +126,14 @@ class DebugDump(object):
         self.write("PLATFORM.UNAME.RELEASE: %s", platform.uname()[2])
 
         if sys.platform.startswith('linux'):
-            self.write("PLATFORM.LINUX_DISTRIBUTION: %s", ' '.join(platform.linux_distribution()))
+            try:
+                self.write("PLATFORM.LINUX_DISTRIBUTION: %s", ' '.join(platform.linux_distribution()))
+            except AttributeError:
+                try:
+                    import distro
+                    self.write("PLATFORM.LINUX_DISTRIBUTION: %s", ' '.join(distro.linux_distribution()))
+                except ImportError:
+                    self.write("PLATFORM.LINUX_DISTRIBUTION: %s", 'Unknown')
             
         if sys.platform.startswith('darwin'):
             self.write("PLATFORM.MAC_VER: %s", platform.mac_ver()[0])
