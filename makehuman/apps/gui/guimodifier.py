@@ -12,7 +12,7 @@ Modifier taskview
 
 **Authors:**           Glynn Clements, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -48,7 +48,6 @@ import log
 from collections import OrderedDict
 import language
 import collections
-import io
 from mesh_operations import calculateSurface
 
 class ModifierTaskView(gui3d.TaskView):
@@ -92,6 +91,8 @@ class ModifierTaskView(gui3d.TaskView):
 
         # Add slider to groupbox
         self.modifiers[slider.modifier.fullName] = slider.modifier
+        if slider.modifier.description is not None and slider.modifier.description != "":
+            slider.setToolTip(slider.modifier.description)
         box.addWidget(slider)
         slider.enabledCondition = enabledCondition
         self.sliders.append(slider)
@@ -168,9 +169,7 @@ class ModifierTaskView(gui3d.TaskView):
             weight = (50 + (150 - 50) * human.getWeight())
             w_units = '%'
         else:
-            bsa = calculateSurface(human.meshData, vertGroups=['body'])/100
-            # Estimating weight using Mosteller's formula for body surface area estimation
-            weight = bsa * bsa * 3600 / height
+            weight = human.getWeightKg()
 
         if G.app.getSetting('units') == 'metric':
             l_units = 'cm'
@@ -221,7 +220,7 @@ def loadModifierTaskViews(filename, human, category, taskviewClass=None):
     if not taskviewClass:
         taskviewClass = ModifierTaskView
 
-    data = json.load(io.open(filename, 'r', encoding='utf-8'), object_pairs_hook=OrderedDict)
+    data = json.load(open(filename, 'r', encoding='utf-8'), object_pairs_hook=OrderedDict)
     taskViews = []
     # Create task views
     for taskName, taskViewProps in data.items():
@@ -239,7 +238,10 @@ def loadModifierTaskViews(filename, human, category, taskviewClass=None):
                 modifier = human.getModifier(modifierName)
                 label = sDef.get('label', None)
                 camFunc = _getCamFunc( sDef.get('cam', None) )
-                slider = modifierslider.ModifierSlider(modifier, label=label, cameraView=camFunc)
+                tooltip = None
+                if len(modifier.description) > 0:
+                    tooltip=modifier.description
+                slider = modifierslider.ModifierSlider(modifier, label=label, cameraView=camFunc, tooltip=tooltip)
                 enabledCondition = sDef.get("enabledCondition", None)
                 taskView.addSlider(sliderCategory, slider, enabledCondition)
 

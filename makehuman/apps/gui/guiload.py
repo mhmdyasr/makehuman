@@ -10,7 +10,7 @@
 
 **Authors:**           Marc Flerackers
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -43,7 +43,6 @@ import qtgui as gui
 from getpath import formatPath
 import filecache
 import os
-import io
 
 
 class HumanFileSort(fc.FileSort):
@@ -59,18 +58,15 @@ class HumanFileSort(fc.FileSort):
     def getMeta(self, filename):
         meta = {}
 
-        import io
-        f = io.open(filename, 'r', encoding="utf-8")
-        for line in f:
-            line = line.strip()
-            lineData = line.split()
-            if not lineData:
-                continue
-            field = lineData[0]
-            if field in self.metaFields:
-                meta[field] = float(lineData[1])
-        f.close()
-
+        with open(filename, 'r', encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                lineData = line.split()
+                if not lineData:
+                    continue
+                field = lineData[0]
+                if field in self.metaFields:
+                    meta[field] = float(lineData[1])
         return meta
 
 
@@ -82,7 +78,7 @@ class LoadTaskView(gui3d.TaskView, filecache.MetadataCacher):
 
         self.modelPath = None
 
-        self.fileentry = self.addTopWidget(gui.FileEntryView('Browse', mode='dir'))
+        self.fileentry = self.addTopWidget(gui.FileEntryView(label='Selected Folder:', buttonLabel='Browse', mode='dir'))
         self.fileentry.filter = 'MakeHuman Models (*.mhm)'
 
         # Declare new settings
@@ -136,7 +132,7 @@ class LoadTaskView(gui3d.TaskView, filecache.MetadataCacher):
         uuid = ''
         tags = set()
         if os.path.isfile(filename) and os.path.splitext(filename)[1] == '.mhm':
-            with io.open(filename, 'r', encoding='utf-8') as f:
+            with open(filename, 'r', encoding='utf-8') as f:
                 for line in f:
                     if line and not line.startswith('#'):
                         data = line.strip().split()

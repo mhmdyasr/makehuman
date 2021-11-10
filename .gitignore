@@ -77,3 +77,13 @@ base_1-1_contents.txt
 ehthumbs.db
 Thumbs.db
 /venv*
+
+# macOS Build Files #
+#####################
+/buildscripts/darwin/build/*
+/buildscripts/darwin/dist/*
+/buildscripts/darwin/.eggs/*
+
+# Python Packages #
+###################
+.eggs/*

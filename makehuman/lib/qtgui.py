@@ -10,7 +10,7 @@
 
 **Authors:**           Glynn Clements, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -40,6 +40,7 @@ import sys
 import os
 import re
 from core import G
+import log
 
 from PyQt5 import QtCore, QtGui, QtSvg, QtWidgets
 
@@ -51,7 +52,7 @@ from getpath import getSysDataPath, getPath, isSubPath, pathToUnicode
 def dummySvgCall():
     """Code which is here just so pyinstaller can discover we need SVG support"""
     dummy = QtSvg.QGraphicsSvgItem("some_svg.svg")
-    
+
 def getLanguageString(text, appendData=None, appendFormat=None):
     """Function to get the translation of a text according to the selected
     language.
@@ -204,11 +205,14 @@ class GroupBox(QtWidgets.QGroupBox, Widget):
     def __str__(self):
         return "%s - %s" % (type(self), str(self.title()))
 
-    def addWidget(self, widget, row = None, column = 0, rowSpan = 1, columnSpan = 1, alignment = QtCore.Qt.Alignment(0)):
+    def addWidget(self, widget, row = None, column = 0, rowSpan = 1, columnSpan = 1, alignment = QtCore.Qt.Alignment(0), tooltip=None):
         # widget.setParent(self)
         if row is None:
             row = self.layout.count()
+        if tooltip is not None:
+            widget.setToolTip(tooltip)
         self.layout.addWidget(widget, row, column, rowSpan, columnSpan, alignment)
+
         widget.show()
         return widget
 
@@ -319,6 +323,9 @@ class _QSlider(QtWidgets.QSlider):
                 return
         super(_QSlider, self).mousePressEvent(event)
 
+#
+# adds a slider to a QGridLayout
+#
 class Slider(QtWidgets.QWidget, Widget):
     _imageCache = {}
     _show_images = False
@@ -331,7 +338,7 @@ class Slider(QtWidgets.QWidget, Widget):
             cls._imageCache[path] = getPixmap(path)
         return cls._imageCache[path]
 
-    def __init__(self, value=0.0, min=0.0, max=1.0, label=None, vertical=False, valueConverter=None, image=None, scale=1000):
+    def __init__(self, value=0.0, min=0.0, max=1.0, label=None, vertical=False, valueConverter=None, image=None, scale=1000, tooltip=None):
         super(Slider, self).__init__()
         #Widget.__init__(self)
         self.text = getLanguageString(label) or ''
@@ -346,6 +353,8 @@ class Slider(QtWidgets.QWidget, Widget):
         self.min = min
         self.max = max
         self.scale = scale
+        if tooltip is not None:
+            self.slider.setToolTip(tooltip)
         self.slider.setMinimum(0)
         self.slider.setMaximum(self.scale)
         self.slider.setValue(self._f2i(value))
@@ -608,33 +617,9 @@ class RadioButton(QtWidgets.QRadioButton, ButtonBase):
                 return radio
 
 class ListItem(QtWidgets.QListWidgetItem):
-    def __init__(self, label, tooltip = True):
+    def __init__(self, label):
         super(ListItem, self).__init__(label)
         self.__hasCheckbox = False
-        self.tooltip = tooltip
-
-    def updateTooltip(self):
-        """
-        Attach a mouse-over tooltip for this item if the text is too long to fit
-        the widget.
-        """
-        if not self.tooltip:
-            return
-
-        if not self.listWidget():
-            return
-
-        metrics = QtGui.QFontMetrics(self.font())
-
-        labelWidth = self.listWidget().width()
-        if self.icon():
-            labelWidth -= self.listWidget().iconSize().width() + 10
-            # pad size with 10px to account for margin between icon and text (this is an approximation)
-
-        if metrics.width(self.text)//2 > labelWidth:
-            self.setToolTip(self.text)
-        else:
-            self.setToolTip("")
 
     @property
     def hasCheckbox(self):
@@ -645,10 +630,6 @@ class ListItem(QtWidgets.QListWidgetItem):
 
     def getUserData(self):
         return self.data(QtCore.Qt.UserRole)
-
-    def setText(self, text):
-        super(ListItem, self).setText(text)
-        self.updateTooltip()
 
     @property
     def text(self):
@@ -1229,8 +1210,10 @@ class AboutBoxScrollbars(QtWidgets.QDialog):
             re_match_urls = re.compile(r"""((?:[a-z][\w-]+:(?:/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.‌​][a-z]{2,4}/)(?:[^\s()<>]+|(([^\s()<>]+|(([^\s()<>]+)))*))+(?:(([^\s()<>]+|(‌​([^\s()<>]+)))*)|[^\s`!()[]{};:'".,<>?«»“”‘’]))""", re.DOTALL)
             return re_match_urls.sub(lambda x: '<a href="%(url)s" style="color: #ffa02f;">%(url)s</a>' % dict(url=str(x.group())), text)
 
-        if sys.platform.startswith('darwin'):
-            self.setWindowFlags(QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowSystemMenuHint)
+        # Causes whole app to hang
+        # if sys.platform.startswith('darwin'):
+        #     self.setWindowFlags(QtCore.Qt.WindowTitleHint | QtCore.Qt.WindowSystemMenuHint)
+
         # Grab window icon of parent
         icon = self.windowIcon()
         size = icon.actualSize(QtCore.QSize(64, 64))
@@ -1340,7 +1323,7 @@ class FileEntryView(QtWidgets.QWidget, Widget):
             return "FileSelectedEvent: Path: %s Source: '%s'" % (
                 repr(self.path), repr(self.source))
 
-    def __init__(self, buttonLabel, mode='open'):
+    def __init__(self, label='', buttonLabel='', mode='open' ):
         """FileEntryView constructor.
 
         The File Entry has a browse button on the left, which will open
@@ -1364,6 +1347,7 @@ class FileEntryView(QtWidgets.QWidget, Widget):
         # Declare data
 
         self._directory = ""
+        self.label = TextView(label)
 
         # Define controls
 
@@ -1411,17 +1395,20 @@ class FileEntryView(QtWidgets.QWidget, Widget):
 
         self.layout = QtWidgets.QGridLayout(self)
 
-        self.layout.addWidget(self.browse, 0, 0)
+        self.layout.addWidget(self.label, 0, 0)
         self.layout.setColumnStretch(0, 0)
 
         self.layout.addWidget(self.edit, 0, 1)
         self.layout.setColumnStretch(1, 1)
 
+        self.layout.addWidget(self.browse, 0, 2)
+        self.layout.setColumnStretch(2, 0)
+
         self.mode = mode
 
         if self.mode != 'dir':
-            self.layout.addWidget(self.confirm, 0, 2)
-            self.layout.setColumnStretch(2, 0)
+            self.layout.addWidget(self.confirm, 0, 3)
+            self.layout.setColumnStretch(3, 0)
 
     def getMode(self):
         """Get the FileEntryView's mode of operation."""
@@ -1498,8 +1485,8 @@ class FileEntryView(QtWidgets.QWidget, Widget):
             self.callEvent('onFileSelected',
                 self.FileSelectedEvent(self.path, source))
         else:
-            import log
             log.notice("The text box is empty. Please enter a valid file name.")
+            G.app.prompt("Missing Filename", "The text box is empty. Please enter a valid file name.", 'OK', helpId='noFileName')
             self.setFocus()
 
     def onFocus(self, event):
@@ -1512,12 +1499,12 @@ class SplashScreen(QtWidgets.QSplashScreen):
     def __init__(self, image, version=""):
         super(SplashScreen, self).__init__(G.app.mainwin, getPixmap(image))
         self._stdout = sys.stdout
-        self.messageRect = QtCore.QRect(354, 531, 432, 41)
+        self.messageRect = QtCore.QRect(118, 545, 620, 41)
         self.messageAlignment = QtCore.Qt.AlignLeft
         self.message = ''
-        self.progressBarRect = QtCore.QRect(660, 581, 124, 8)
+        self.progressBarRect = QtCore.QRect(118, 576, 620, 8)
         self._version = version
-        self.versionRect = QtCore.QRect(186, 537, 88, 30)
+        self.versionRect = QtCore.QRect(24, 547, 88, 36)
         self.setProgress(0)
 
     def setProgress(self, progress):
@@ -1683,7 +1670,7 @@ class VScrollLayout(QtWidgets.QLayout):
             rect.setHeight(max(rect.height(), size.height()))
 
         # log.debug('VScrollLayout.setGeometry(child): %d %d %d %d', rect.x(), rect.y(), rect.width(), rect.height())
-        self._child.setGeometry(rect)
+        self._child.widget().setGeometry(rect)
 
     def expandingDirections(self):
         if self._child is None:

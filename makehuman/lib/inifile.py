@@ -10,7 +10,7 @@
 
 **Authors:**           Glynn Clements
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -50,8 +50,10 @@ def _s2u(value):
         return value
 
 def parseINI(s, replace = []):
+    if isinstance(s, bytes):
+        s = s.decode('utf-8')
     try:
-        result = json.loads(s, encoding='utf-8')
+        result = json.loads(s)
     except ValueError:
         for src, dst in replace + [("'",'"'), (": True",": true"), (": False",": false"), (": None",": null")]:
             s = s.replace(src, dst)

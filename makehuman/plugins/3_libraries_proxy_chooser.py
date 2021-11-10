@@ -12,7 +12,7 @@ Proxy mesh library
 
 **Authors:**           Marc Flerackers
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -56,13 +56,11 @@ class ProxyFileSort(fc.FileSort):
 
         faces = 0
         try:
-            import io
-            f = io.open(filename.replace('.proxy', '.obj'), 'r', encoding="utf-8")
-            for line in f:
-                lineData = line.split()
-                if lineData and lineData[0] == 'f':
-                    faces += 1
-            f.close()
+            with open(filename.replace('.proxy', '.obj'), 'r', encoding="utf-8") as f:
+                for line in f:
+                    lineData = line.split()
+                    if lineData and lineData[0] == 'f':
+                        faces += 1
         except:
             pass
         meta['faces'] = faces
@@ -129,6 +127,10 @@ class ProxyTaskView(proxychooser.ProxyChooserTaskView):
             return
 
         self.human.setProxy(None)
+
+        if self.descriptionWidget:
+            self.descrLbl.setText('')
+
         self.filechooser.deselectItem(mhclofile)
 
         if not suppressSignal:

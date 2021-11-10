@@ -10,7 +10,7 @@
 
 **Authors:**           Glynn Clements
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -44,7 +44,6 @@ from OpenGL import GL
 import texture
 import log
 from core import G
-import io
 
 class Uniform(object):
     def __init__(self, index, location, name, pytype, dims):
@@ -269,7 +268,7 @@ class SamplerUniform(Uniform):
 
 class Shader(object):
     _supported = None
-    if G.args.get('noshaders', False):
+    if G.args.get('noshaders', False) or G.preStartupSettings["noShaders"]:
         _supported = False
 
     _glsl_version_str = None
@@ -334,7 +333,7 @@ class Shader(object):
 
     @staticmethod
     def createShader(file, type, defines = [], defineables = None):
-        with io.open(file, 'r', encoding='utf-8') as f:
+        with open(file, 'r', encoding='utf-8') as f:
             source = f.read()
         if "#version" not in source:
             log.warning("The shader source in %s does not contain an explicit GLSL version declaration. This could cause problems with some compilers.", file)

@@ -10,7 +10,7 @@
 
 **Authors:**           Glynn Clements
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -35,8 +35,6 @@ Abstract
 
 TODO
 """
-import io
-
 import gui3d
 import mh
 import gui
@@ -204,7 +202,7 @@ class ProfilingTaskView(gui3d.TaskView):
     def saveStats(self, path):
         if not path:
             return
-        with io.open(path, 'w', encoding='utf-8') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             pstats.Stats(self.profile, stream=f).strip_dirs().sort_stats(-1).print_stats()
 
 def load(app):

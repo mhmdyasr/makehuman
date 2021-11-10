@@ -12,9 +12,9 @@ MakeHuman python entry-point.
 
 **Authors:**           Glynn Clements, Jonas Hauquier, Joel Palmius
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
-**Licensing:**         AGPL3 
+**Licensing:**         AGPL3
 
     This file is part of MakeHuman Community (www.makehumancommunity.org).
 
@@ -39,19 +39,20 @@ This file starts the MakeHuman python application.
 
 import sys
 import os
-import io
 import re
 import subprocess
 
+from PyQt5 import QtCore
+
 ## Version information #########################################################
-__version__ = "1.2.0"                   # Major, minor and patch version number
+__version__ = "1.2.1"                   # Major, minor and patch version number
 release = False                         # False for nightly
-versionSub = "Beta1"                    # Short version description
+versionSub = "alpha"                    # Short version description
 meshVersion = "hm08"                    # Version identifier of the basemesh
 ################################################################################
 
 __author__ = "Jonas Hauquier, Joel Palmius, Glynn Clements, Thomas Larsson et al."
-__copyright__ = "Copyright 2018 Data Collection AB and listed authors"
+__copyright__ = "Copyright 2020 Data Collection AB and listed authors"
 __credits__ = ["See http://www.makehumancommunity.org/halloffame"]
 __license__ = "AGPLv3"
 __maintainer__ = "Joel Palmius, Jonas Hauquier"
@@ -140,9 +141,16 @@ def set_sys_path():
     #[BAL 07/11/2013] make sure we're in the right directory
     if not sys.platform.startswith('darwin'): # Causes issues with py2app builds on MAC
         os.chdir(getCwd())
-    syspath = ["./", "./lib", "./apps", "./shared", "./apps/gui","./core"]
-    syspath.extend(sys.path)
-    sys.path = syspath
+        syspath = ["./", "./lib", "./apps", "./shared", "./apps/gui","./core"]
+        syspath.extend(sys.path)
+        sys.path = syspath
+    else:
+        data_path = "../Resources/makehuman"
+        if(os.path.isdir(data_path)):
+            os.chdir(data_path)
+        syspath = ["./lib", "./apps", "./shared", "./apps/gui", "./core", "../lib", "../"]
+        syspath.extend(sys.path)
+        sys.path = syspath
 
     if isBuild():
         # Make sure we load packaged DLLs instead of those present on the system
@@ -169,9 +177,9 @@ def redirect_standard_streams():
     import locale
     encoding = locale.getpreferredencoding()
     if stdout_filename:
-        sys.stdout = io.open(stdout_filename, "w", encoding=encoding, errors="replace")
+        sys.stdout = open(stdout_filename, "w", encoding=encoding, errors="replace")
     if stderr_filename:
-        sys.stderr = io.open(stderr_filename, "w", encoding=encoding, errors="replace")
+        sys.stderr = open(stderr_filename, "w", encoding=encoding, errors="replace")
 
 def close_standard_streams():
     sys.stdout.close()
@@ -225,7 +233,7 @@ def parse_arguments():
     parser.add_argument("--debugopengl", action="store_true", help="enable OpenGL error checking and logging (slow)")
     parser.add_argument("--fullloggingopengl", action="store_true", help="log all OpenGL calls (very slow)")
     parser.add_argument("--debugnumpy", action="store_true", help="enable numpy runtime error messages")
-    
+
     if not isRelease():
         parser.add_argument("-t", "--runtests", action="store_true", help="run test suite (for developers)")
 
@@ -242,14 +250,14 @@ def parse_arguments():
 
 def getCopyrightMessage(short=False):
     if short:
-        return """MakeHuman Copyright (C) 2001-2018 http://www.makehumancommunity.org
+        return """MakeHuman Copyright (C) 2001-2020 http://www.makehumancommunity.org
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions. For details use the option --license"""
 
-    return """Makehuman is a completely free, open source, innovative and 
+    return """Makehuman is a completely free, open source, innovative and
 professional software for the modelling of 3-Dimensional humanoid characters
-Copyright (C) 2001-2018  www.makehumancommunity.org
+Copyright (C) 2001-2020  www.makehumancommunity.org
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
@@ -264,11 +272,8 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-The MakeHuman source and data are released under the AGPL license.
-This also includes everything that is exported from or by MakeHuman. 
-However, respecting a set of conditions (which are explained in section 
-C of license.txt), you are allowed to instead use the CC0 license 
-for exports. 
+The MakeHuman source code is released under the AGPL license.
+The graphical assets bundled with MakeHuman have been released as CC0.
 
 A human readable explanation of the license terms can be found via
 the MakeHuman home page:
@@ -285,12 +290,12 @@ For further help, have a look in the community wiki at:
 
     http://www.makehumancommunity.org/wiki/Main_Page
 
-If you have other questions or need support, feel free to ask on our 
+If you have other questions or need support, feel free to ask on our
 forums at:
 
     http://www.makehumancommunity.org/forum/
 
-The forums is also where you can contact the MakeHuman team. 
+The forums is also where you can contact the MakeHuman team.
 
 Bugs can be reported on the project's bug tracker(s):
 
@@ -301,13 +306,7 @@ Bugs can be reported on the project's bug tracker(s):
 class LicenseInfo(object):
     """
     License information for MakeHuman assets.
-    If no properties are changed, the license object retrieved specifies
-    the licensing information that applies to the assets included in the
-    official MakeHuman release.
-    We consider assets to be the basemesh, targets, proxy definitions and their
-    fitting data, in general all the files in the data folder with the exclusion
-    of the data in the form as retained by the official exporters to which the
-    CC0 exception clause applies.
+    Assets bundled with the official MakeHuman binary have been released as CC0.
     Assets created by third parties can be bound to different licensing conditions,
     which is why properties can be set as a dict of format:
         {"author": ..., "license": ..., "copyright": ..., "homepage": ...}
@@ -318,9 +317,9 @@ class LicenseInfo(object):
         user-created assets.
         """
         self.author = "MakeHuman Team"
-        self.license = "AGPL3"
+        self.license = "CC0"
         self.homepage = "http://www.makehumancommunity.org"
-        self.copyright = "(c) www.makehumancommunity.org 2001-2018"
+        self.copyright = "(c) www.makehumancommunity.org 2001-2020"
         self._keys = ["author", "license", "copyright", "homepage"]
         self._customized = False
 
@@ -388,7 +387,7 @@ Homepage: %s""" % (self.author, self.license, self.copyright, self.homepage)
         if len(words) < 1:
             return
 
-        key = words[0]
+        key = words[0].rstrip(":")
         value = " ".join(words[1:])
 
         self.setProperty(key,value)
@@ -416,7 +415,7 @@ Homepage: %s""" % (self.author, self.license, self.copyright, self.homepage)
                 l_key = index[i]
                 l_val = index[i+1]
 
-                key = text[last:last+l_key].tostring()
+                key = str(text[last:last+l_key].tostring(), 'utf8')
                 val = str(text[last+l_key:last+l_key+l_val].tostring(), 'utf8')
                 stringDict[key] = val
 
@@ -431,13 +430,7 @@ Homepage: %s""" % (self.author, self.license, self.copyright, self.homepage)
 def getAssetLicense(properties=None):
     """
     Retrieve the license information for MakeHuman assets.
-    If no custom properties are specified, the license object retrieved specifies
-    the licensing information that applies to the assets included in the
-    official MakeHuman release.
-    We consider assets to be the basemesh, targets, proxy definitions and their
-    fitting data, in general all the files in the data folder with the exclusion
-    of the data in the form as retained by the official exporters to which the
-    CC0 exception clause applies.
+    Assets bundled with the official MakeHuman binary have been released as CC0.
     Assets created by third parties can be bound to different licensing conditions,
     which is why properties can be set as a dict of format:
         {"author": ..., "license": ..., "copyright": ..., "homepage": ...}
@@ -450,7 +443,7 @@ def getAssetLicense(properties=None):
 
 def _wordwrap(text, chars_per_line=80):
     """Split the lines of a text between whitespaces when a line length exceeds
-    the specified number of characters. Newlines already present in text are 
+    the specified number of characters. Newlines already present in text are
     kept.
     """
     text_ = text.split('\n')
@@ -485,7 +478,7 @@ def getCredits(richtext=False):
         result = '<h2>MakeHuman credits</h2>'
     else:
         result = ''
-    return result + '''The list of people that made this software can be found at our website at 
+    return result + '''The list of people that made this software can be found at our website at
 http://www.makehumancommunity.org/halloffame'''
 
 def getSoftwareLicense(richtext=False):
@@ -532,7 +525,7 @@ def getThirdPartyLicenses(richtext=False):
         result = '<h2>Third-party licenses</h2>'
     else:
         result = ""
-    result += """MakeHuman includes a number of third part software components, which have 
+    result += """MakeHuman includes a number of third part software components, which have
 their own respective licenses. We express our gratitude to the developers of
 those libraries, without which MakeHuman would not have been made possible.
 Here follows a list of the third-party open source libraries that MakeHuman
@@ -556,7 +549,7 @@ makes use of.\n"""
         if not os.path.isfile(lfile):
             result += "\n%s\n" % _error("Error: License file %s is not found, this is an incomplete MakeHuman distribution!" % lfile)
             continue
-        with io.open(lfile, encoding='utf-8') as f:
+        with open(lfile, encoding='utf-8') as f:
             text = f.read()
 
         text = _wordwrap(text)

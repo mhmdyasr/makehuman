@@ -23,15 +23,19 @@ pipeline {
 						script: "date +\"%Y%m%d\"",
 						returnStdout: true
 					).trim()
-					env.EXPECTEDEXE = "${env.WORKSPACE}/../pynsist-work/build/nsis/makehuman-community_${env.DATESTAMP}.exe"
-					env.EXENAME = "${params.BINARYNAME}-${env.DATESTAMP}-windows.exe"
-					env.ZIPNAME = "${env.WORKSPACE}/../${params.BINARYNAME}-${env.DATESTAMP}-nightly-windows.zip"
+					if (env.RELEASE != "True") {
+						env.VERSIONNAME = env.DATESTAMP
+					} else {
+						env.VERSIONNAME = "${params.VERSIONNAME}"
+					}
+					env.EXPECTEDEXE = "${env.WORKSPACE}/../pynsist-work/build/nsis/makehuman-community_${env.VERSIONNAME}.exe"
+					env.EXENAME = "${params.BINARYNAME}-${env.VERSIONNAME}-windows.exe"
+					env.ZIPNAME = "${env.WORKSPACE}/../${params.BINARYNAME}-${env.VERSIONNAME}-nightly-windows.zip"
 					if (env.RELEASE == "True") {
-						env.EXENAME = "${params.BINARYNAME}-${env.VERSIONNAME}-windows.exe"
 						env.ZIPNAME = "${env.WORKSPACE}/../${params.BINARYNAME}-${env.VERSIONNAME}-windows.zip"
 					}
 					env.DESIREDEXE = "${env.DISTDIR}/${env.EXENAME}"
-					env.PERFORMUPLOAD = true;
+					env.PERFORMUPLOAD = (env.RELEASE != "True");
 
 					sh "echo \"env.DISTDIR: ${env.DISTDIR}\""
 					sh "echo \"env.DATESTAMP: ${env.DATESTAMP}\""
@@ -101,6 +105,7 @@ pipeline {
 					sh "echo >> build.conf \"isRelease = ${params.RELEASE}\""
 					sh "echo >> build.conf \"noDownload = True\""
 					sh "echo >> build.conf \"skipScripts = True\n\""
+					sh "echo >> build.conf \"version = ${env.VERSIONNAME}\n\""
 					sh "echo >> build.conf \"[Deb]\n\n[Rpm]\n\""
 					sh "echo >> build.conf \"[Win32]\""
 					sh "echo >> build.conf \"packageName = makehumancommunity\""
@@ -241,7 +246,8 @@ pipeline {
 			steps {
 				dir("${env.DISTDIR}") {
 					script {
-						sh "echo > README.txt \"Addons for blender 2.79 are not bundled. See the community homepage for these.\""
+						sh "cp ${env.WORKSPACE}/buildscripts/win32/README.txt README.txt"
+						sh "unix2dos README.txt"
 						sh "zip -r ${env.ZIPNAME} addons_for_blender_28x README.txt ${env.EXENAME}"
 					}
 				}
@@ -257,13 +263,19 @@ pipeline {
 			}
 			steps {
 				script {
-					sh "ssh joepal1976@ssh.tuxfamily.org 'rm ~/makehuman/makehuman-repository/nightly/makehuman-community-*-nightly-windows.zip'"
+					sh "ssh joepal1976@ssh.tuxfamily.org 'rm -f ~/makehuman/makehuman-repository/nightly/makehuman-community-*-nightly-windows.zip'"
 				}
 			}
 		}
 
 		// Upload zip to destination
 		stage('deploy') {
+			when {
+				expression {
+					params.RELEASE == "False"
+				}
+
+			}
 			steps {
 				script {
 					sh "scp ${env.ZIPNAME} ${params.DEPLOYDEST}"

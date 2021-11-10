@@ -10,7 +10,7 @@
 
 **Authors:**           Joel Palmius, Marc Flerackers, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -38,7 +38,6 @@ TODO
 
 import os
 import sys
-import io
 import mh
 import gui3d
 import gui
@@ -165,9 +164,16 @@ class SettingsTaskView(gui3d.TaskView):
         self.createFilterModeSwitch()
 
         startupBox = self.addLeftWidget(gui.GroupBox('Startup'))
-        self.preload = startupBox.addWidget(SettingCheckbox("Preload macro targets", 'preloadTargets'))
 
+        def hdpiPostAction(action):
+            if action:
+                gui3d.app.prompt('Info', 'You need to restart for these changes to be applied.', 'OK', helpId='useHDPI')
+
+        self.preload = startupBox.addWidget(SettingCheckbox("Preload macro targets", 'preloadTargets'))
         self.saveScreenSize = startupBox.addWidget(SettingCheckbox("Restore window size", 'restoreWindowSize'))
+        self.useHDPI = startupBox.addWidget(SettingCheckbox("Use HDPI", 'useHDPI', hdpiPostAction))
+        self.noShaders = startupBox.addWidget(SettingCheckbox("No shaders", 'noShaders', hdpiPostAction))
+        self.noSampleBuffers = startupBox.addWidget(SettingCheckbox("No sample buffers", 'noSampleBuffers', hdpiPostAction))
 
         resetBox = self.addLeftWidget(gui.GroupBox('Restore settings'))
         self.resetButton = resetBox.addWidget(gui.Button("Restore to defaults"))
@@ -198,7 +204,7 @@ class SettingsTaskView(gui3d.TaskView):
                     if sys.platform.startswith('darwin') or sys.platform.startswith('linux') and not os.path.isdir(getConfigPath('')):
                         os.makedirs(getConfigPath(''))
                     if os.path.isdir(homePath) and os.path.isdir(getConfigPath('')):
-                        with io.open(filePath, 'w', encoding='utf-8') as f:
+                        with open(filePath, 'w', encoding='utf-8') as f:
                             f.writelines(homePath + '\n')
                     self.homeButton.setLabel('Delete Config File')
                     gui3d.app.statusPersist('Home Folder Location: ' + homePath)

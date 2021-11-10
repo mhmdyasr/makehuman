@@ -10,7 +10,7 @@
 
 **Authors:**           Joel Palmius
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -46,6 +46,7 @@ if sys.platform.startswith('win'):
 import log
 import getpath
 from mhversion import MHVersion
+from core import G
 
 class DependencyError(Exception):
     def __init__(self, value):
@@ -63,7 +64,6 @@ class DebugDump(object):
         self.debugpath = None
 
     def open(self):
-        import io
         if self.debugpath is None:
             self.debugpath = getpath.getPath()
 
@@ -71,9 +71,9 @@ class DebugDump(object):
                 os.makedirs(self.debugpath)
 
             self.debugpath = os.path.join(self.debugpath, "makehuman-debug.txt")
-            self.debug = io.open(self.debugpath, "w", encoding="utf-8")
+            self.debug = open(self.debugpath, "w", encoding="utf-8")
         else:
-            self.debug = io.open(self.debugpath, "a", encoding="utf-8")
+            self.debug = open(self.debugpath, "a", encoding="utf-8")
 
     def write(self, msg, *args):
         try:
@@ -153,6 +153,19 @@ class DebugDump(object):
         import OpenGL
         self.open()
         self.write("PYOPENGL.VERSION: %s", OpenGL.__version__)
+        
+        noshaders = "not set"
+        if G.args.get('noshaders', False):
+            noshaders = "set via command line"
+        if G.preStartupSettings["noShaders"]:
+            noshaders = "set via setting"
+        self.write("NOSHADERS: %s", noshaders)
+        
+        nosamplebuffers = "not set"
+        if G.preStartupSettings["noSampleBuffers"]:
+            nosamplebuffers = "set via setting"
+        self.write("NOSAMPLEBUFFERS: %s", nosamplebuffers)
+
         self.close()
 
     def appendQt(self):
@@ -167,11 +180,9 @@ class DebugDump(object):
         self.write("QT.PLUGIN_PATH_ENV: %s" % getpath.pathToUnicode(qt_plugin_path_env))
         qt_conf_present = os.path.isfile(getpath.getSysPath('qt.conf'))
         if qt_conf_present:
-            import io
-            f = io.open(getpath.getSysPath('qt.conf'), "r", encoding="utf-8", errors="replace")
-            qt_conf_content = f.read()
-            qt_conf_content = qt_conf_content.replace('\n', '\n'+(' '*len('QT.CONF: '))).strip()
-            f.close()
+            with open(getpath.getSysPath('qt.conf'), "r", encoding="utf-8", errors="replace") as f:
+                qt_conf_content = f.read()
+                qt_conf_content = qt_conf_content.replace('\n', '\n'+(' '*len('QT.CONF: '))).strip()
             self.write("QT.CONF: %s" % qt_conf_content)
         else:
             self.write("QT.CONF: NOT PRESENT")

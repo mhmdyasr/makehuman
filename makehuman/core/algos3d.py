@@ -12,7 +12,7 @@ MakeHuman 3D Transformation functions.
 
 **Authors:**           Joel Palmius, Marc Flerackers, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -60,7 +60,6 @@ import os
 import numpy as np
 import log
 from getpath import getSysDataPath, canonicalPath
-import io
 
 _targetBuffer = {}
 
@@ -128,7 +127,7 @@ class Target(object):
         import makehuman
         data = []
         license = defaultTargetLicense()
-        with io.open(name, 'r', encoding='utf-8') as fd:
+        with open(name, 'r', encoding='utf-8') as fd:
             for line in fd:
                 line = line.strip()
                 if line.startswith('#'):
@@ -461,7 +460,7 @@ def saveTranslationTarget(obj, targetPath, groupToSave=None, epsilon=0.001):
     license_str = '\n'.join(['# ' + s for s in license_str])
 
     try:
-        with io.open(targetPath, 'w', encoding='utf-8') as fileDescriptor:
+        with open(targetPath, 'w', encoding='utf-8') as fileDescriptor:
             fileDescriptor.write('%s\n\n\n' % license_str)
             for i in range(nVertsExported):
                 fileDescriptor.write('%d %f %f %f\n' % (vertsToSave[i], delta[i,0], delta[i,1], delta[i,2]))
@@ -507,4 +506,4 @@ def defaultTargetLicense():
     import makehuman
     return makehuman.getAssetLicense( {"license": "AGPL3",
                                        "author": "MakeHuman",
-                                       "copyright": "2016 Data Collection AB, Joel Palmius, Jonas Hauquier"} )
+                                       "copyright": "2020 Data Collection AB, Joel Palmius, Jonas Hauquier"} )

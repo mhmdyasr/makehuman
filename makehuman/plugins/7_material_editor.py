@@ -10,7 +10,7 @@
 
 **Authors:**           Glynn Clements, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -503,12 +503,20 @@ class MaterialEditorTaskView(gui3d.TaskView):
 
     def reloadMaterial(self):
         obj = self.getSelectedObject()
-
+        pxy = self.humanObjSelector.getSelectedProxy()
+        author = "unknown"
+        license = "unknown"
+        filename = "internal"
+        if pxy is not None:
+            author = pxy.license.author
+            license = pxy.license.license
+            filename = pxy.file
         # update description
         self.descrLbl.setText (obj.name + ":\n" +
                 str(len(obj.mesh.coord)) + " vertices\n" +
                 str(len(obj.mesh.fvert)) + " faces\n" +
-                str (obj.mesh.vertsPerFaceForExport) + " vertices per face.")
+                str (obj.mesh.vertsPerFaceForExport) + " vertices per face.\n" +
+                "Author: " + author + "\nLicense: " + license + "\n\nFile: " + filename )
 
         if shader.Shader.supported():
             self.listShaders(obj.material)

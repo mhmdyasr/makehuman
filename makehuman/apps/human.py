@@ -10,7 +10,7 @@
 
 **Authors:**           Joel Palmius, Marc Flerackers, Jonas Hauquier
 
-**Copyright(c):**      MakeHuman Team 2001-2019
+**Copyright(c):**      MakeHuman Team 2001-2020
 
 **Licensing:**         AGPL3
 
@@ -48,6 +48,7 @@ import material
 import animation
 import sys
 from uuid import uuid4
+from mesh_operations import calculateSurface, calculateVolume
 
 from makehuman import getBasemeshVersion, getShortVersion, getVersionStr, getVersion
 
@@ -87,6 +88,7 @@ class Human(guicommon.Object, animation.AnimatedMesh):
 
         self.material = material.fromFile(getSysDataPath('skins/default.mhmat'))
         self._defaultMaterial = material.Material().copyFrom(self.material)
+        self._backUpMaterial = None
 
         # Init with no user-selected skeleton
         self.skeleton = None
@@ -623,6 +625,17 @@ class Human(guicommon.Object, animation.AnimatedMesh):
 
     def getWeight(self):
         return self.weight
+
+    def getBsa(self):
+        return calculateSurface(self.meshData, vertGroups=['body'])/100
+
+    def getVolume(self):
+        return calculateVolume(self.meshData, vertGroups=['body'])/1000
+
+    def getWeightKg(self):
+        # Estimating weight using Mosteller's formula for body surface area estimation
+        bsa = self.getBsa()
+        return bsa * bsa * 3600 / self.getHeightCm()
 
     def _setWeightVals(self):
         self.maxweightVal = max(0.0, self.weight * 2 - 1)
@@ -1444,7 +1457,6 @@ class Human(guicommon.Object, animation.AnimatedMesh):
         self.callEvent('onChanged', event)
 
     def load(self, filename, update=True, strict=False):
-        import io
 
         def _compare_versions(mhmVersion,pgmVersion):
             """ Return true if major+minor matches, false if they do not. Ignore patch number. """
@@ -1476,7 +1488,7 @@ class Human(guicommon.Object, animation.AnimatedMesh):
 
         subdivide = False
 
-        with io.open(filename, 'r', encoding="utf-8") as f:
+        with open(filename, 'r', encoding="utf-8") as f:
 
             for lh in list(G.app.loadHandlers.values()):
                 try:
@@ -1576,14 +1588,13 @@ class Human(guicommon.Object, animation.AnimatedMesh):
         log.message("Done loading MHM file.")
 
     def save(self, filename):
-        import io
         from progress import Progress
         progress = Progress(len(G.app.saveHandlers))
         event = events3d.HumanEvent(self, 'save')
         event.path = filename
         self.callEvent('onChanging', event)
 
-        with io.open(filename, "w", encoding="utf-8") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write('# Written by MakeHuman %s\n' % getVersionStr())
             f.write('version %s\n' % getShortVersion(noSub=True))
             if self.getUuid():
