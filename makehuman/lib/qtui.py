@@ -175,24 +175,25 @@ g_mouse_pos = None
 gg_mouse_pos = None
 g_mousewheel_t = None
 
-class Canvas(QtOpenGL.QGLWidget):
+class Canvas(QtWidgets.QOpenGLWidget):
     def __init__(self, parent, app):
         self.app = app
         self.blockRedraw = False
-        format = QtOpenGL.QGLFormat()
-        format.setAlpha(True)
+        format = QtGui.QSurfaceFormat()
+        format.setAlphaBufferSize(8)
         format.setDepthBufferSize(24)
-        if not G.preStartupSettings["noSampleBuffers"]:
-            format.setSampleBuffers(True)
-            format.setSamples(4)
-        super(Canvas, self).__init__(format, parent)
+        format.setSwapBehavior(QtGui.QSurfaceFormat.DoubleBuffer)
+        #if not G.preStartupSettings["noSampleBuffers"]:
+        #    format.setSamples(4)
+        format.setSamples(0)
+        super(Canvas, self).__init__(parent)
+        self.setFormat(format)
         self.create()
 
     def create(self):
         G.canvas = self
         self.setFocusPolicy(QtCore.Qt.TabFocus)
         self.setFocus()
-        self.setAutoBufferSwap(False)
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_NativeWindow)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground, False)
